@@ -26,7 +26,9 @@ int readings[numReadings];      // the readings from the analog input
 int readIndex = 0;              // the index of the current reading
 int total = 0;                  // the running total
 int average = 0;                // the average
-int dir;                      
+int dir; 
+int prev_error = 0;  
+int speed = 200;                   
 
 
 int dist = 15, tolerance = 4;
@@ -68,12 +70,12 @@ void loop() {
 //  delay(0);
 
   if (sonar_dist == 0);
-  else if (sonar_dist > dist + tolerance) {
+  else if (sonar_dist > dist) {
 //    motor.drive(255, 1, 0);
     dir = 1;
 //    Serial.println("Drive Forward!");
   }
-  else if (sonar_dist < dist - tolerance) {
+  else if (sonar_dist < dist) {
 //    motor.drive(255, -1, 0);
     dir = -1;
 //    Serial.println("Drive Backward!");
@@ -82,6 +84,13 @@ void loop() {
     dir = 0;
 //    Serial.println("Brake!");
   }
+
+  int sonar_error = abs(dist - sonar_dist);
+
+  speed += sonar_error;
+
+  if (speed < 0) speed = 0;
+  else if (speed > 255) speed = 255;
 
  // Line Following
  // white = 50
