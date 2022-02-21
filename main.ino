@@ -26,10 +26,12 @@ int readings[numReadings];      // the readings from the analog input
 int readIndex = 0;              // the index of the current reading
 int total = 0;                  // the running total
 int average = 0;                // the average
-int dir;                      
+int dir = 1;  
+int sonar_counter = 0;  
+double turn = 0;                  
 
 
-int dist = 15, tolerance = 4;
+int dist = 15, tolerance = 2;
 long sonar_dist;
 int test_counter = 0;
 
@@ -48,40 +50,6 @@ void loop() {
   // put your main code here, to run repeatedly:
   // 0.26m/s Full Speed
   
-
-    // Steering Control
-//  motor.drive(255, 1, 0.0);
-//  delay(2000);
-//  motor.drive(255, 1, 45.0);
-//  delay(2000);
-//  motor.drive(255, 1, -45.0);
-//  delay(2000);
-//  motor.drive(255, -1, 80.0);
-//  delay(2000);
-
-    // Silver Challenge
-
-//    motor.drive(255, 1); // give a value between 0 and 255  
-  sonar_dist = sr04.Distance();
-//  Serial.print(sonar_dist);
-//  Serial.println("cm");
-//  delay(0);
-
-  if (sonar_dist == 0);
-  else if (sonar_dist > dist + tolerance) {
-//    motor.drive(255, 1, 0);
-    dir = 1;
-//    Serial.println("Drive Forward!");
-  }
-  else if (sonar_dist < dist - tolerance) {
-//    motor.drive(255, -1, 0);
-    dir = -1;
-//    Serial.println("Drive Backward!");
-  }
-  else {
-    dir = 0;
-//    Serial.println("Brake!");
-  }
 
  // Line Following
  // white = 50
@@ -105,27 +73,41 @@ void loop() {
   }
 
   // calculate the average:
- double value = total / numReadings;
-// Serial.print("Value :");
-// Serial.println(value);
+  double value = total / numReadings;
+  // Serial.print("Value :");
+  // Serial.println(value);
 
- double turn = (180.0/800.0)*value - 90;
+  if (sonar_counter >= 100) {
 
- if (dir == -1) {
-  turn *= -1;
- }
+    // Silver Challenge
+  sonar_dist = sr04.Distance();
 
-// Serial.print("Turn :");
-// Serial.println(turn);
+  if (sonar_dist == 0);
+  else if (sonar_dist > dist + tolerance) {
+    dir = 1;
+  }
+  else if (sonar_dist < dist - tolerance) {
+    dir = -1;
+  }
+  else {
+    dir = 0;
+  }
 
-// if (value  < 500) { 
-//  motor.drive(200, 1, 80);
-// }
-// else {
-//  motor.drive(200, 1, -80);
-// }
+  sonar_counter = 0;
+}
+else { 
+  sonar_counter++;
+}
 
-  Serial.println(dir);
+  if (dir == 1) 
+    turn = (180.0/800.0)*ircontrol.get_ir_value() - 90.0;
+  else if (dir == -1)
+    turn = -(180.0/800.0)*ircontrol.get_ir_value() + 90.0;
+  else turn = 0;
+
+
+  Serial.print("Turn: ");
+  Serial.println(turn);
 
   motor.drive(200, dir, turn);
  
