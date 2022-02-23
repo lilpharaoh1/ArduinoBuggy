@@ -32,14 +32,12 @@ void MotorControl::drive(int speed, int dir, double steer) {
   // steer right
   else if (steer > 0 && steer <= 90){
     double turn_coeff = 1.0 - (steer / 90.0);
-    Serial.println(turn_coeff);
     analogWrite(left_enable, speed);
     analogWrite(right_enable, speed*turn_coeff);
   }
   // steer left
   else if (steer < 0 && steer >= -90) { 
     double turn_coeff = 1.0 + (steer / 90.0);
-    Serial.println(turn_coeff);
     analogWrite(left_enable, speed*turn_coeff);
     analogWrite(right_enable, speed);
   }
