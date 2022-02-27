@@ -39,7 +39,7 @@ bool drive_msg = false;
 
 // Silver Challenge
 int dist = 15, tolerance = 2;
-long sonar_dist;
+long sonar_dist = 20; // check if this is best?
 int test_counter = 0;
 
 // Networking
@@ -94,6 +94,8 @@ void loop() {
       Serial.println(data);
       if (data == 100) drive_msg = true;
       else if (data == 115) drive_msg = false;
+
+      if (data == 119) client.write(toStr()); // Might need to be a string?
     }
   }
   else sonar_counter++;
@@ -120,10 +122,10 @@ void loop() {
   // Serial.print("Value :");
   // Serial.println(value);
 
-  // if (sonar_counter >= 100) {
+  if (sonar_counter >= 100) {
 
     // Silver Challenge
-  // sonar_dist = sr04.Distance();
+  sonar_dist = sr04.Distance();
 
   // if (sonar_dist == 0);
   // else if (sonar_dist > dist + tolerance) {
@@ -134,7 +136,7 @@ void loop() {
   // }
   // else {
   //   dir = 0;
-  // }
+  }
 
 //   sonar_counter = 0;
 // }
@@ -175,7 +177,12 @@ void loop() {
   //  Serial.println(begin_counter);
 
 
+
   if (drive_msg)
+    if (sonar_dist == 0);
+    else if (sonar_dist < dist)
+      motor.brake(10); // motor.drive(0, dir, turn); 
+    else 
     motor.drive(200, dir, turn);
   else motor.brake(10);
 }
