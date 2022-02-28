@@ -88,36 +88,44 @@ void loop() {
  // black = 700
 
   // Serial.println(ip);
-  WiFiClient client = server.available();
-  // Serial.println(client.connected());
-  if (client.connected()) { 
-    int data = client.read();
-    if (data == 100 || data == 115) {
-      if (data == 100) drive_msg = true;
-      else if (data == 115) drive_msg = false;
-    }
+  if (wifi_counter >= 0) {
+    WiFiClient client = server.available();
+    // Serial.println(client.connected());
+    if (client.connected()) { 
+      int data = client.read();
+      if (data == 100 || data == 115) {
+        if (data == 100) drive_msg = true;
+        else if (data == 115) drive_msg = false;
+      }
 
-    if (data == 119) {
-      // String sonar_string = String(sonar_dist);
-      // char sonar_char[sonar_string.length()];
-      // for (int i = 0; i < sonar_string.length(); i++) 
-      //   sonar_char[i] = sonar_string[i];
-      // Serial.println(sonar_char);
-      if (drive_msg) {
-        if (obstacle) {
-          char msg[] = "OBSTACLE DETECTED!";
-          client.write(msg);
+      if (data == 119) {
+        // String sonar_string = String(sonar_dist);
+        // char sonar_char[sonar_string.length()];
+        // for (int i = 0; i < sonar_string.length(); i++) 
+        //   sonar_char[i] = sonar_string[i];
+        // Serial.println(sonar_char);
+        if (drive_msg) {
+          if (obstacle) {
+            char msg[] = "OBSTACLE DETECTED!";
+            client.write(msg);
+          }
+          else {
+            char msg[] = "NO OBSTACLE!";
+            client.write(msg);
+          }
         }
         else {
-          char msg[] = "NO OBSTACLE!";
+          char msg[] = "BRAKE";
           client.write(msg);
         }
+        // //Serial.println("in here...");
+        
       }
-      else {
-        char msg[] = "BRAKE!";
-        client.write(msg);
-      }
+
     }
+    //wifi_counter = 0;
+  }
+  else wifi_counter++;
 
   //IR Input
   ircontrol.read_value();
