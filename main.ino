@@ -31,11 +31,14 @@ int average = 0;                // the average
 
 // Bronze Challenge
 int dir = 1;  
-int sonar_counter = 0;  
+int sonar_counter = 0; 
+int wifi_counter = 0; 
 double turn = 0;   
 bool begin_counter = false;
 int crossroads_counter = -1;
 bool drive_msg = false;
+bool obstacle = false;
+char msg[5] = "";
 
 // Silver Challenge
 int dist = 15, tolerance = 2;
@@ -85,20 +88,36 @@ void loop() {
  // black = 700
 
   // Serial.println(ip);
-  if (sonar_counter < 50) {
-    WiFiClient client = server.available();
-    // Serial.println(client.connected());
-
-    if (client.connected()) { 
-      int data = client.read();
-      Serial.println(data);
+  WiFiClient client = server.available();
+  // Serial.println(client.connected());
+  if (client.connected()) { 
+    int data = client.read();
+    if (data == 100 || data == 115) {
       if (data == 100) drive_msg = true;
       else if (data == 115) drive_msg = false;
-
-      if (data == 119) client.write(toStr()); // Might need to be a string?
     }
-  }
-  else sonar_counter++;
+
+    if (data == 119) {
+      // String sonar_string = String(sonar_dist);
+      // char sonar_char[sonar_string.length()];
+      // for (int i = 0; i < sonar_string.length(); i++) 
+      //   sonar_char[i] = sonar_string[i];
+      // Serial.println(sonar_char);
+      if (drive_msg) {
+        if (obstacle) {
+          char msg[] = "OBSTACLE DETECTED!";
+          client.write(msg);
+        }
+        else {
+          char msg[] = "NO OBSTACLE!";
+          client.write(msg);
+        }
+      }
+      else {
+        char msg[] = "BRAKE!";
+        client.write(msg);
+      }
+    }
 
   //IR Input
   ircontrol.read_value();
@@ -140,9 +159,9 @@ void loop() {
 
 //   sonar_counter = 0;
 // }
-// else { 
-//   sonar_counter++;
-// }
+  else { 
+    sonar_counter++;
+  }
 //  if (analogRead(crossroads_pin) < 200) {
 //    if (begin_counter < 0) begin_counter = 0;
 //    else if (begin_counter >= 0 && begin_counter < 1000){ 
@@ -177,12 +196,20 @@ void loop() {
   //  Serial.println(begin_counter);
 
 
+  Serial.println(sonar_dist);
 
-  if (drive_msg)
+  if (drive_msg) {
     if (sonar_dist == 0);
-    else if (sonar_dist < dist)
-      motor.brake(10); // motor.drive(0, dir, turn); 
-    else 
-    motor.drive(200, dir, turn);
-  else motor.brake(10);
+    else if (sonar_dist < 15) {
+      obstacle = true; 
+      motor.brake(10);
+    }
+    else {
+      motor.drive(200, dir, turn);
+      obstacle = false;
+    }
+  }
+  else {
+    motor.brake(10);
+  }
 }
