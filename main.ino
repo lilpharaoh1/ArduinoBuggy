@@ -53,9 +53,9 @@ IPAddress ip;
 
 double calc_turn(int dir) { 
     if (dir == 1) 
-      turn = (180.0/800.0)*ircontrol.get_ir_value() - 90.0;
+      turn = (180.0/700.0)*ircontrol.get_ir_value() - 90.0;
     else if (dir == -1)
-      turn = -(180.0/800.0)*ircontrol.get_ir_value() + 90.0;
+      turn = -(180.0/700.0)*ircontrol.get_ir_value() + 90.0;
     else turn = 0;
 
     return turn;
@@ -88,34 +88,27 @@ void loop() {
  // black = 700
 
   // Serial.println(ip);
-  if (wifi_counter >= 0) {
+  if (wifi_counter >= 200) {
     WiFiClient client = server.available();
     // Serial.println(client.connected());
     if (client.connected()) { 
       int data = client.read();
-      if (data == 100 || data == 115) {
-        if (data == 100) drive_msg = true;
-        else if (data == 115) drive_msg = false;
-      }
+      if (data == 100) drive_msg = true;
+      else if (data == 115) drive_msg = false;
 
       if (data == 119) {
-        // String sonar_string = String(sonar_dist);
-        // char sonar_char[sonar_string.length()];
-        // for (int i = 0; i < sonar_string.length(); i++) 
-        //   sonar_char[i] = sonar_string[i];
-        // Serial.println(sonar_char);
         if (drive_msg) {
           if (obstacle) {
-            char msg[] = "OBSTACLE DETECTED!";
+            char msg = '1';
             client.write(msg);
           }
           else {
-            char msg[] = "NO OBSTACLE!";
+            char msg = '0';
             client.write(msg);
           }
         }
         else {
-          char msg[] = "BRAKE";
+          char msg = '9';
           client.write(msg);
         }
         // //Serial.println("in here...");
@@ -123,7 +116,7 @@ void loop() {
       }
 
     }
-    //wifi_counter = 0;
+    if (wifi_counter > 250) wifi_counter = 0;
   }
   else wifi_counter++;
 
@@ -131,21 +124,23 @@ void loop() {
   ircontrol.read_value();
 
   //Signal Smoothing
-  total = total - readings[readIndex];
-  // read from the sensor:
-  readings[readIndex] = ircontrol.get_ir_value();
-  // add the reading to the total:
-  total = total + readings[readIndex];
-  // advance to the next position in the array:
-  readIndex = readIndex + 1;
-  // if we're at the end of the array...
-  if (readIndex >= numReadings) {
-    // ...wrap around to the beginning:
-    readIndex = 0;
-  }
+  // total = total - readings[readIndex];
+  // // read from the sensor:
+  // readings[readIndex] = ircontrol.get_ir_value();
+  // // add the reading to the total:
+  // total = total + readings[readIndex];
+  // // advance to the next position in the array:
+  // readIndex = readIndex + 1;
+  // // if we're at the end of the array...
+  // if (readIndex >= numReadings) {
+  //   // ...wrap around to the beginning:
+  //   readIndex = 0;
+  // }
 
-  // calculate the average:
-  double value = total / numReadings;
+  // // calculate the average:
+  // double value = total / numReadings;
+
+  // Serial.println(value);
   // Serial.print("Value :");
   // Serial.println(value);
 
@@ -203,9 +198,6 @@ void loop() {
   //  Serial.print("begin_counter: ");
   //  Serial.println(begin_counter);
 
-
-  Serial.println(sonar_dist);
-
   if (drive_msg) {
     if (sonar_dist == 0);
     else if (sonar_dist < 15) {
@@ -213,7 +205,7 @@ void loop() {
       motor.brake(10);
     }
     else {
-      motor.drive(200, dir, turn);
+      motor.drive(120, dir, turn);
       obstacle = false;
     }
   }
