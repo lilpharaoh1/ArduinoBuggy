@@ -8,6 +8,8 @@ Button DriveButton;
 Button StopButton;
 int sonar_counter = 0;
 Textarea myTextArea;
+boolean obs_detected = true;
+boolean brake = false;
 
 
 void setup() {
@@ -42,12 +44,35 @@ void draw() {
    //Processing data
   data = myClient.readString();//Until('\n');
   if (data != null) { 
-     println("Sonar Msg: " + data);
-     myTextArea.clear();
-     myTextArea.setText("Sonar Distance : ");
-     myTextArea.setText(data);
+    // 1 = Obstacle, 0 = No Obstacle, 9 = Brake
+     if (int(data) == 1) {
+       if (!obs_detected) {
+         myTextArea.clear();
+         myTextArea.setText("OBSTACLE DETECTED!");
+         println("Sonar Msg: " + "OBSTACLE DETECTED!");
+         obs_detected = true;
+         brake = false;
+       }
+     }
+     else if (int(data) == 0) {
+       if (obs_detected) {
+         myTextArea.clear();
+         myTextArea.setText("NO OBSTACLE!");
+         println("Sonar Msg: " + "NO OBSTACLE!");
+         obs_detected = false;
+         brake = false;
+       }
+     }
+      else {
+        if (!brake){
+          myTextArea.clear();
+          myTextArea.setText("BRAKE!");
+          println("Sonar Msg: " + "BRAKE!");
+          brake = true; 
+          obs_detected = true;
+       }
+      }
   }
-  
 }
 
 public void controlEvent(ControlEvent ev) {
