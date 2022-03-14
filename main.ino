@@ -39,6 +39,7 @@ int crossroads_counter = -1;
 bool drive_msg = false;
 bool obstacle = false;
 char msg[5] = "";
+// double value = 400;
 
 // Silver Challenge
 int dist = 15, tolerance = 2;
@@ -53,9 +54,9 @@ IPAddress ip;
 
 double calc_turn(int dir) { 
     if (dir == 1) 
-      turn = (180.0/700.0)*ircontrol.get_ir_value() - 90.0;
+      turn = (180.0/550.0)*ircontrol.get_ir_value() - 90.0;  // was 700, testing 550
     else if (dir == -1)
-      turn = -(180.0/700.0)*ircontrol.get_ir_value() + 90.0;
+      turn = -(180.0/550.0)*ircontrol.get_ir_value() + 90.0;
     else turn = 0;
 
     return turn;
@@ -137,8 +138,8 @@ void loop() {
   //   readIndex = 0;
   // }
 
-  // // calculate the average:
-  // double value = total / numReadings;
+  // // // calculate the average:
+  // value = total / numReadings;
 
   // Serial.println(value);
   // Serial.print("Value :");
@@ -205,7 +206,7 @@ void loop() {
       motor.brake(10);
     }
     else {
-      motor.drive(120, dir, turn);
+      motor.drive(185, dir, turn);
       obstacle = false;
     }
   }
