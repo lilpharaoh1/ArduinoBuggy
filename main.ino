@@ -45,6 +45,11 @@ int dist = 15, tolerance = 2;
 long sonar_dist = 20; // check if this is best?
 int test_counter = 0;
 
+// Silver 2
+float currE = 0, prevE = 0;
+unsigned long currTime = millis() + 1, prevTime = millis();
+double Kp = 15, Ki = 0, Kd = 5;
+
 // Networking
 char ssid[] = "GROUPZ777";
 char pass[] = "GROUPZ777";
@@ -145,9 +150,21 @@ void loop() {
   // Serial.println(value);
 
   if (sonar_counter >= 100) {
+    currE = sr04.Distance();
+    currTime = millis();
+
+    unsigned long deltaT = currTime - prevTime;
+    float dE = (currE - prevE)/deltaT;
+
+    int output = (Kp*currE) + (Kd*dE);
+
+    prevE = currE;
+    prevTime = currTime;
+    
+    
 
     // Silver Challenge
-  sonar_dist = sr04.Distance();
+  //sonar_dist = sr04.Distance();
 
   // if (sonar_dist == 0);
   // else if (sonar_dist > dist + tolerance) {
