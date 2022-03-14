@@ -48,7 +48,8 @@ int test_counter = 0;
 // Silver 2
 float currE = 0, prevE = 0;
 unsigned long currTime = millis() + 1, prevTime = millis();
-double Kp = 15, Ki = 0, Kd = 5;
+double Kp = 15, Ki = 0, Kd = 5, pid_mid = 135;
+int pid_output = pid_mid;
 
 // Networking
 char ssid[] = "GROUPZ777";
@@ -58,12 +59,29 @@ IPAddress ip;
 
 double calc_turn(int dir) { 
     if (dir == 1) 
-      turn = (180.0/700.0)*ircontrol.get_ir_value() - 90.0;
+      turn = (180.0/550.0)*ircontrol.get_ir_value() - 90.0;
     else if (dir == -1)
-      turn = -(180.0/700.0)*ircontrol.get_ir_value() + 90.0;
+      turn = -(180.0/550.0)*ircontrol.get_ir_value() + 90.0;
     else turn = 0;
 
     return turn;
+}
+
+int calc_speed() {
+  if (pid_output <= 30) return 200;
+  else if (pid_output >= 800) return 200; 
+
+  float pid_store = pid_output;
+  int speed;
+
+  if (pid_output > pid_mid && pid_output < 800) { 
+    speed = (200 / (1000 - pid_mid))*(pid_store - pid_mid);
+    return speed;
+  }
+  else {
+    speed = (200 / (80 - pid_mid))*(pid_store - pid_mid);
+    return speed;
+  }
 }
 
 void setup() {
@@ -156,7 +174,9 @@ void loop() {
     unsigned long deltaT = currTime - prevTime;
     float dE = (currE - prevE)/deltaT;
 
-    int output = (Kp*currE) + (Kd*dE);
+    pid_output = (Kp*currE) + (Kd*dE);
+    Serial.print("PID : ");
+    Serial.println(pid_output);
 
     prevE = currE;
     prevTime = currTime;
@@ -196,6 +216,10 @@ void loop() {
 //    turn = calc_turn(dir);
 //  }
 
+  if (pid_output <= 0);
+  else if (pid_output >= pid_mid) dir = 1;
+  else dir = -1;
+
   turn = calc_turn(dir);
 
   // if (analogRead(crossroads_pin) < 200) { 
@@ -215,14 +239,18 @@ void loop() {
   //  Serial.print("begin_counter: ");
   //  Serial.println(begin_counter);
 
+  //calc_speed
+  int speed = calc_speed();
+  Serial.print("Speed : ");
+  Serial.println(speed);
+
   if (drive_msg) {
+    motor.drive(speed, dir, 0);
     if (sonar_dist == 0);
     else if (sonar_dist < 15) {
       obstacle = true; 
-      motor.brake(10);
     }
     else {
-      motor.drive(120, dir, turn);
       obstacle = false;
     }
   }
