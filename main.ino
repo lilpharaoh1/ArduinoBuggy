@@ -25,7 +25,7 @@ IRControl ircontrol = IRControl(ir_pin);
 //signal smoothing stuff 
 const int numReadings = 10;
 int readings[numReadings];      // the readings from the analog input
-int readIndex = 0;              // the index of the current reading
+int readIndex = 0;              // the index of the sonar_currEnt reading
 int total = 0;                  // the running total
 int average = 0;                // the average
 
@@ -46,10 +46,15 @@ long sonar_dist = 20; // check if this is best?
 int test_counter = 0;
 
 // Silver 2
-float currE = 0, prevE = 0;
-unsigned long currTime = millis() + 1, prevTime = millis();
-double Kp = 15, Ki = 0, Kd = 5, pid_mid = 135;
-int pid_output = pid_mid;
+float sonar_currE = 0, sonar_prevE = 0;
+unsigned long sonar_currTime = millis() + 1, sonar_prevTime = millis();
+float ir_currE = 0, ir_prevE = 0;
+
+unsigned long ir_currTime = millis() + 1, ir_prevTime = millis();
+
+double Kp = 15, Ki = 0, Kd = 5, sonar_pid_mid = 135, ir_pid_mid = 400;
+int sonar_pid_output = sonar_pid_mid;
+int ir_pid_output = ir_pid_mid;
 
 // Networking
 char ssid[] = "GROUPZ777";
@@ -57,29 +62,58 @@ char pass[] = "GROUPZ777";
 WiFiServer server(907);
 IPAddress ip;
 
-double calc_turn(int dir) { 
-    if (dir == 1) 
-      turn = (180.0/550.0)*ircontrol.get_ir_value() - 90.0;
-    else if (dir == -1)
-      turn = -(180.0/550.0)*ircontrol.get_ir_value() + 90.0;
-    else turn = 0;
+void calc_ir_pid(int ir_value) { 
+  double ir_Kp = 15, ir_Kd = 5;
+  ir_currE = ir_value;
+  ir_currTime = millis();
 
-    return turn;
+  unsigned long ir_deltaT = ir_currTime - ir_prevTime;
+  float dE = (ir_currE - ir_prevE)/ir_deltaT;
+
+  ir_pid_output = (Kp*ir_currE) + (Kd*dE);
+
+  ir_prevE = ir_currE;
+  ir_prevTime = ir_currTime;
+}
+
+double calc_turn(int dir) { 
+  int ir = ircontrol.get_ir_value();
+  calc_ir_pid(ir); // approx. White  = 700, Black = 10300
+
+  if (ir_pid_output <= 500) return -90;
+  else if (ir_pid_output >= 10300) return 90; 
+
+  float pid_store = ir_pid_output;
+
+  ir = 0.02*(pid_store - 500) - 90; 
+
+  if (dir == -1) ir *= -1;
+  else if (dir == 0) ir = 0;
+  
+  return ir;
+
+  if (dir == 1) 
+    turn = (180.0/550.0)*ir - 90.0;
+  else if (dir == -1)
+    turn = -(180.0/550.0)*ir + 90.0;
+  else turn = 0;
+
+  return turn;
 }
 
 int calc_speed() {
-  if (pid_output <= 30) return 200;
-  else if (pid_output >= 800) return 200; 
+  if (sonar_pid_output <= 30) return 200;
+  else if (sonar_pid_output >= 800) return 200; 
 
-  float pid_store = pid_output;
+  float pid_store = sonar_pid_output;
   int speed;
 
-  if (pid_output > pid_mid && pid_output < 800) { 
-    speed = (200 / (1000 - pid_mid))*(pid_store - pid_mid);
+  if (sonar_pid_output > sonar_pid_mid && sonar_pid_output < 800) { 
+    speed = (200 / (1000 - sonar_pid_mid))*(pid_store - sonar_pid_mid);
     return speed;
   }
   else {
-    speed = (200 / (80 - pid_mid))*(pid_store - pid_mid);
+    speed = (200 / (80 - sonar_pid_mid))*(pid_store - sonar_pid_mid);
     return speed;
   }
 }
@@ -134,7 +168,6 @@ void loop() {
           char msg = '9';
           client.write(msg);
         }
-        // //Serial.println("in here...");
         
       }
 
@@ -168,37 +201,17 @@ void loop() {
   // Serial.println(value);
 
   if (sonar_counter >= 100) {
-    currE = sr04.Distance();
-    currTime = millis();
+    sonar_currE = sr04.Distance();
+    sonar_currTime = millis();
 
-    unsigned long deltaT = currTime - prevTime;
-    float dE = (currE - prevE)/deltaT;
+    unsigned long sonar_deltaT = sonar_currTime - sonar_prevTime;
+    float dE = (sonar_currE - sonar_prevE)/sonar_deltaT;
 
-    pid_output = (Kp*currE) + (Kd*dE);
-    Serial.print("PID : ");
-    Serial.println(pid_output);
+    sonar_pid_output = (Kp*sonar_currE) + (Kd*dE);
 
-    prevE = currE;
-    prevTime = currTime;
-    
-    
-
-    // Silver Challenge
-  //sonar_dist = sr04.Distance();
-
-  // if (sonar_dist == 0);
-  // else if (sonar_dist > dist + tolerance) {
-  //   dir = 1;
-  // }
-  // else if (sonar_dist < dist - tolerance) {
-  //   dir = -1;
-  // }
-  // else {
-  //   dir = 0;
+    sonar_prevE = sonar_currE;
+    sonar_prevTime = sonar_currTime;
   }
-
-//   sonar_counter = 0;
-// }
   else { 
     sonar_counter++;
   }
@@ -216,8 +229,8 @@ void loop() {
 //    turn = calc_turn(dir);
 //  }
 
-  if (pid_output <= 0);
-  else if (pid_output >= pid_mid) dir = 1;
+  if (sonar_pid_output <= 0);
+  else if (sonar_pid_output >= sonar_pid_mid) dir = 1;
   else dir = -1;
 
   turn = calc_turn(dir);
@@ -241,11 +254,9 @@ void loop() {
 
   //calc_speed
   int speed = calc_speed();
-  Serial.print("Speed : ");
-  Serial.println(speed);
 
   if (drive_msg) {
-    motor.drive(speed, dir, 0);
+    motor.drive(speed, dir, turn);
     if (sonar_dist == 0);
     else if (sonar_dist < 15) {
       obstacle = true; 
