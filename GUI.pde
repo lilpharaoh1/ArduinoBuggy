@@ -10,8 +10,6 @@ int sonar_counter = 0;
 Textarea myTextArea;
 Textarea myTextArea2;
 Textarea myTextArea3;
-boolean obs_detected = true;
-boolean brake = false;
 
 
 
@@ -66,35 +64,24 @@ void draw() {
    //Processing data
   data = myClient.readString();//Until('\n');
   if (data != null) { 
-    print(data.length());
-    // 1 = Obstacle, 0 = No Obstacle, 9 = Brake
+    // 1 = Full Speed, 2 = Half Speed, 3 = Low Speed 9 = Brake
      if (int(data) == 1) {
-       if (!obs_detected) {
-         myTextArea.clear();
-         myTextArea.setText("OBSTACLE DETECTED!");
-         println("Sonar Msg: " + "OBSTACLE DETECTED!");
-         obs_detected = true;
-         brake = false;
-       }
+       myTextArea.clear();
+       myTextArea.setText("Full Speed!");
      }
-     else if (int(data) == 0) {
-       if (obs_detected) {
-         myTextArea.clear();
-         myTextArea.setText("NO OBSTACLE!");
-         println("Sonar Msg: " + "NO OBSTACLE!");
-         obs_detected = false;
-         brake = false;
-       }
+     else if (int(data) == 2) {
+       myTextArea.clear();
+       myTextArea.setText("Half Speed!");
      }
-      else {
-        if (!brake){
-          myTextArea.clear();
-          myTextArea.setText("BRAKE!");
-          println("Sonar Msg: " + "BRAKE!");
-          brake = true; 
-          obs_detected = true;
-       }
-      }
+     else if (int(data) == 3) {
+       myTextArea.clear();
+       myTextArea.setText("Low Speed!");
+     }
+     else {
+        myTextArea.clear();
+        myTextArea.setText("BRAKE!");
+        println("Sonar Msg: " + "BRAKE!");
+     }
   }
   
   myTextArea2.clear();
