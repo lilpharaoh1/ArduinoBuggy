@@ -8,12 +8,15 @@ Button DriveButton;
 Button StopButton;
 int sonar_counter = 0;
 Textarea myTextArea;
+Textarea myTextArea2;
+Textarea myTextArea3;
 boolean obs_detected = true;
 boolean brake = false;
 
 
+
 void setup() {
-  size(350, 200);
+  size(350, 400);
   background(200, 100, 200);
   p5 = new ControlP5(this);
   DriveButton = p5.addButton("Drive").setPosition(50, 40).setSize(100, 20);
@@ -28,6 +31,25 @@ void setup() {
                   .setColor(color(128))
                   .setColorBackground(color(200,100));
                   //.setColorForeground(color(0,100));
+                 
+  myTextArea2 = p5.addTextarea("speed_display")
+                  .setPosition(50,200)
+                  .setSize(250,60)
+                  .setFont(createFont("arial",20))
+                  .setLineHeight(14)
+                  .setColor(color(128))
+                  .setColorBackground(color(200,100));
+                  //.setColorForeground(color(0,100));
+                  
+  myTextArea3 = p5.addTextarea("pid_display")
+                  .setPosition(50,300)
+                  .setSize(250,80)
+                  .setFont(createFont("arial",20))
+                  .setLineHeight(20)
+                  .setColor(color(128))
+                  .setColorBackground(color(200,100));
+                  //.setColorForeground(color(0,100));
+                  
 }
 
 void draw() {
@@ -44,6 +66,7 @@ void draw() {
    //Processing data
   data = myClient.readString();//Until('\n');
   if (data != null) { 
+    print(data.length());
     // 1 = Obstacle, 0 = No Obstacle, 9 = Brake
      if (int(data) == 1) {
        if (!obs_detected) {
@@ -73,6 +96,12 @@ void draw() {
        }
       }
   }
+  
+  myTextArea2.clear();
+  myTextArea2.setText("BRAKE!");
+  
+  myTextArea3.clear();
+  myTextArea3.setText("KP = 7 \nKI = 4 \nKD = 5");
 }
 
 public void controlEvent(ControlEvent ev) {
