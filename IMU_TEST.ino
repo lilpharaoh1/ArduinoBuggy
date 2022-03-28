@@ -6,10 +6,10 @@ float x, y, z;
 double Kp;     // gain values which need to be tuned to get smooth motion
 double Ki;
 double Kd;
-int setPoint = 0;     // some value between high (900) and low (50) i.e. 
+double setPoint = 0;     // some value between high (900) and low (50) i.e. 
 unsigned long currTime, prevTime = 0;
 double deltaT;
-double currE, prevE;
+double currE, prevE = 0;
 double iE, dE; // errors for integral an derivative values
 int input_x;
 double output;
@@ -21,9 +21,9 @@ if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
     while (1);
   }
-  Kp = 10;
+  Kp = 0.1;
   Ki = 0;
-  Kd = 3;
+  Kd = 0.3;
 }
 
 void loop() {
@@ -35,6 +35,7 @@ void loop() {
   }
   output = PID(input_x);
   Serial.println(output);
+  delay(1);
 }
 
 double PID(int input){
