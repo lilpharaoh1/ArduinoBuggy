@@ -16,13 +16,13 @@ Textarea myTextArea;
 
 void setup() {
   fullScreen();
-  //size(1000, 1000);
+  size(1000, 1000);
   p5 = new ControlP5(this);
 
   font = createFont("Times New Roman", 100);
   font2 = createFont("Times New Roman", 30);
 
-  sprite = loadImage("Buggy_Sprite-removebg-preview.png");
+  sprite = loadImage("buggy-removebg.png");
   
   myTextArea = p5.addTextarea("angle_display")
                   .setPosition(width/2 - 200,height - 250)
@@ -47,14 +47,14 @@ void draw() {
   
   data = myClient.readString();
   if (data != null) {
-    print(data);
+    BuggyAngle = int(data);
   }
   
   background(30, 180, 120);
   textFont(font);
   text("Tilt Angle from Vertical", width/2 - 450, height - 300);
-  BuggyAngle= 110;
-  
+  //BuggyAngle= 110;
+ 
   myTextArea.clear();
   String angle = str(BuggyAngle);
   myTextArea.setText("\n                        " + angle);
