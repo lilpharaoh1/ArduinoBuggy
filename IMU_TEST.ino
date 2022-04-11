@@ -33,10 +33,10 @@ if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
     while (1);
   }
-  Kp = 4;
-  Ki = 0.13;
-  Kd = 60;
-  drift = 0.06; 
+  Kp = 6;
+  Ki = 0.25;
+  Kd = 37.5;
+  drift = 1.038; 
 
 // motor
 
@@ -87,11 +87,10 @@ double PID(double input){
   dE = (currE - prevE)/deltaT;
   curr_drift = curr_drift + drift;
 
-  int output = (Kp * currE) + (Ki * iE) + (Kd * dE) + drift;
+  int output = (Kp * currE) + (Ki * iE) + (Kd * dE) + curr_drift;
 
   prevE = currE;
   prevTime = currTime;
-  Serial.println(deltaT);
 
   return output;
   
