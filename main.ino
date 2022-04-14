@@ -38,7 +38,8 @@ bool begin_counter = false;
 int crossroads_counter = -1;
 bool drive_msg = false;
 bool obstacle = false;
-char msg[5] = "";
+char msg[4] = "";
+int speed = 0;
 
 // Silver Challenge
 int dist = 15, tolerance = 2;
@@ -106,15 +107,15 @@ int calc_speed() {
   else if (sonar_pid_output >= 800) return 200; 
 
   float pid_store = sonar_pid_output;
-  int speed;
+  int calc_speed;
 
   if (sonar_pid_output > sonar_pid_mid && sonar_pid_output < 800) { 
-    speed = (200 / (1000 - sonar_pid_mid))*(pid_store - sonar_pid_mid);
-    return speed;
+    calc_speed = (200 / (1000 - sonar_pid_mid))*(pid_store - sonar_pid_mid);
+    return calc_speed;
   }
   else {
-    speed = (200 / (80 - sonar_pid_mid))*(pid_store - sonar_pid_mid);
-    return speed;
+    calc_speed = (200 / (80 - sonar_pid_mid))*(pid_store - sonar_pid_mid);
+    return calc_speed;
   }
 }
 
@@ -155,12 +156,16 @@ void loop() {
 
       if (data == 119) {
         if (drive_msg) {
-          if (obstacle) {
+          if (speed >= 185) {
             char msg = '1';
             client.write(msg);
           }
+          else if (speed >= 100 && speed < 185) {
+            char msg = '2';
+            client.write(msg);
+          }
           else {
-            char msg = '0';
+            char msg = '3';
             client.write(msg);
           }
         }
@@ -253,7 +258,7 @@ void loop() {
   //  Serial.println(begin_counter);
 
   //calc_speed
-  int speed = calc_speed();
+  speed = calc_speed();
 
   if (drive_msg) {
     motor.drive(speed, dir, turn);
