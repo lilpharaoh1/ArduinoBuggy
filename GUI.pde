@@ -10,13 +10,11 @@ int sonar_counter = 0;
 Textarea myTextArea;
 Textarea myTextArea2;
 Textarea myTextArea3;
-boolean obs_detected = true;
-boolean brake = false;
 
 
 
 void setup() {
-  size(350, 400);
+  size(350, 300);
   background(200, 100, 200);
   p5 = new ControlP5(this);
   DriveButton = p5.addButton("Drive").setPosition(50, 40).setSize(100, 20);
@@ -30,19 +28,10 @@ void setup() {
                   .setLineHeight(14)
                   .setColor(color(128))
                   .setColorBackground(color(200,100));
-                  //.setColorForeground(color(0,100));
-                 
-  myTextArea2 = p5.addTextarea("speed_display")
-                  .setPosition(50,200)
-                  .setSize(250,60)
-                  .setFont(createFont("arial",20))
-                  .setLineHeight(14)
-                  .setColor(color(128))
-                  .setColorBackground(color(200,100));
-                  //.setColorForeground(color(0,100));
+                  //.setColorForeground(color(0,100));              
                   
   myTextArea3 = p5.addTextarea("pid_display")
-                  .setPosition(50,300)
+                  .setPosition(50,200)
                   .setSize(250,80)
                   .setFont(createFont("arial",20))
                   .setLineHeight(20)
@@ -66,42 +55,28 @@ void draw() {
    //Processing data
   data = myClient.readString();//Until('\n');
   if (data != null) { 
-    print(data.length());
-    // 1 = Obstacle, 0 = No Obstacle, 9 = Brake
+    // 1 = Full Speed, 2 = Half Speed, 3 = Low Speed 9 = Brake
      if (int(data) == 1) {
-       if (!obs_detected) {
-         myTextArea.clear();
-         myTextArea.setText("OBSTACLE DETECTED!");
-         println("Sonar Msg: " + "OBSTACLE DETECTED!");
-         obs_detected = true;
-         brake = false;
-       }
+       myTextArea.clear();
+       myTextArea.setText("Full Speed!");
      }
-     else if (int(data) == 0) {
-       if (obs_detected) {
-         myTextArea.clear();
-         myTextArea.setText("NO OBSTACLE!");
-         println("Sonar Msg: " + "NO OBSTACLE!");
-         obs_detected = false;
-         brake = false;
-       }
+     else if (int(data) == 2) {
+       myTextArea.clear();
+       myTextArea.setText("Half Speed!");
      }
-      else {
-        if (!brake){
-          myTextArea.clear();
-          myTextArea.setText("BRAKE!");
-          println("Sonar Msg: " + "BRAKE!");
-          brake = true; 
-          obs_detected = true;
-       }
-      }
+     else if (int(data) == 3) {
+       myTextArea.clear();
+       myTextArea.setText("Low Speed!");
+     }
+     else {
+        myTextArea.clear();
+        myTextArea.setText("BRAKE!");
+        println("Sonar Msg: " + "BRAKE!");
+     }
   }
   
-  myTextArea2.clear();
-  myTextArea2.setText("BRAKE!");
-  
   myTextArea3.clear();
-  myTextArea3.setText("KP = 7 \nKI = 4 \nKD = 5");
+  myTextArea3.setText("KP = 5 \nKI = 0 \nKD = 15");
 }
 
 public void controlEvent(ControlEvent ev) {
